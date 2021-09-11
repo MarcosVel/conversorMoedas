@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { ActivityIndicator, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import Picker from "./src/components/Picker";
 
 import api from "./src/services/api";
@@ -14,48 +14,71 @@ export default function App() {
   useEffect(() => {
     async function loadMoedas() {
       const response = await api.get('all');
-      console.log(response.data)
+      // console.log(response.data)
+
+      // Object.keys(response.data) - retorna as keys da api, que no caso é o nome de cada objeto fechado (USD, EUR, BTC)
+      let arrayMoedas = []
+      Object.keys(response.data).map((key) => {
+        arrayMoedas.push({
+          key: key,
+          label: key,
+          value: key
+        })
+      })
+
+      // console.log(arrayMoedas)
+
+      setMoedas(arrayMoedas);
+      setLoading(false);
     }
 
     loadMoedas();
   }, []);
 
-  return (
-    <TouchableWithoutFeedback onPress={ () => Keyboard.dismiss() }>
-      <View style={ styles.container }>
-        <View style={ styles.areaMoeda }>
-          <Text style={ styles.title }>Selecione sua moeda</Text>
-          <Picker  />
-        </View>
-
-        <View style={ styles.areaValor }>
-          <Text style={ styles.title }>Digite um valor para converter em (R$)</Text>
-          <TextInput
-            placeholder="Ex.: 150"
-            style={ styles.input }
-            keyboardType='numeric'
-            onChangeText={ (valor) => setMoedaBValor(valor) }
-          />
-        </View>
-
-        <TouchableOpacity style={ styles.btnArea }>
-          <Text style={ styles.btnText }>Converter</Text>
-        </TouchableOpacity>
-
-        <View style={ styles.areaResultado }>
-          <Text style={ styles.valorConvertido }>
-            3 USD
-          </Text>
-          <Text style={ [ styles.valorConvertido, { fontSize: 18, margin: 10, fontWeight: 'normal' } ] }>
-            Corresponde a
-          </Text>
-          <Text style={ styles.valorConvertido }>
-            19,90
-          </Text>
-        </View>
+  if (loading) {
+    return (
+      <View style={ [ styles.container, { justifyContent: 'center' } ] }>
+        <ActivityIndicator color="#f9f9f9" size={ 45 } />
       </View>
-    </TouchableWithoutFeedback>
-  )
+    )
+  } else {
+    return (
+      <TouchableWithoutFeedback onPress={ () => Keyboard.dismiss() }>
+        <View style={ styles.container }>
+          <View style={ styles.areaMoeda }>
+            <Text style={ styles.title }>Selecione sua moeda</Text>
+            <Picker moedas={ moedas } onChange={ (moeda) => setMoedaSelecionada(moeda) } />
+          </View>
+
+          <View style={ styles.areaValor }>
+            <Text style={ styles.title }>Digite um valor para converter em (R$)</Text>
+            <TextInput
+              placeholder="Ex.: 150"
+              style={ styles.input }
+              keyboardType='numeric'
+              onChangeText={ (valor) => setMoedaBValor(valor) }
+            />
+          </View>
+
+          <TouchableOpacity style={ styles.btnArea }>
+            <Text style={ styles.btnText }>Converter</Text>
+          </TouchableOpacity>
+
+          <View style={ styles.areaResultado }>
+            <Text style={ styles.valorConvertido }>
+              3 USD
+            </Text>
+            <Text style={ [ styles.valorConvertido, { fontSize: 18, margin: 10, fontWeight: 'normal' } ] }>
+              Corresponde a
+            </Text>
+            <Text style={ styles.valorConvertido }>
+              19,90
+            </Text>
+          </View>
+        </View>
+      </TouchableWithoutFeedback>
+    )
+  }
 }
 
 const styles = StyleSheet.create({
