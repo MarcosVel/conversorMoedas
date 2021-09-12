@@ -11,6 +11,9 @@ export default function App() {
   const [ moedaSelecionada, setMoedaSelecionada ] = useState(null);
   const [ moedaBValor, setMoedaBValor ] = useState(0);
 
+  const [ valorMoeda, setValorMoeda ] = useState(null);
+  const [ valorConvertido, setValorConvertido ] = useState(0);
+
   useEffect(() => {
     async function loadMoedas() {
       const response = await api.get('all');
@@ -34,6 +37,22 @@ export default function App() {
 
     loadMoedas();
   }, []);
+
+  async function converter() {
+    if (moedaSelecionada === null || moedaBValor === 0) {
+      alert("Por favor selecione uma moeda.");
+      return; // para não prosseguir
+    }
+
+    const response = await api.get(`all/${ moedaSelecionada }-BRL`);
+    // console.log(response.data);
+    // console.log(response.data[moedaSelecionada].ask);
+
+    let resultado = (response.data[ moedaSelecionada ].ask * parseFloat(moedaBValor))
+    setValorConvertido(`R$ ${ resultado.toFixed(2) }`)
+    setValorMoeda(moedaBValor)
+    Keyboard.dismiss();
+  }
 
   if (loading) {
     return (
@@ -60,21 +79,23 @@ export default function App() {
             />
           </View>
 
-          <TouchableOpacity style={ styles.btnArea }>
+          <TouchableOpacity style={ styles.btnArea } onPress={ converter }>
             <Text style={ styles.btnText }>Converter</Text>
           </TouchableOpacity>
 
-          <View style={ styles.areaResultado }>
-            <Text style={ styles.valorConvertido }>
-              3 USD
-            </Text>
-            <Text style={ [ styles.valorConvertido, { fontSize: 18, margin: 10, fontWeight: 'normal' } ] }>
-              Corresponde a
-            </Text>
-            <Text style={ styles.valorConvertido }>
-              19,90
-            </Text>
-          </View>
+          { valorConvertido !== 0 && (
+            <View style={ styles.areaResultado }>
+              <Text style={ styles.valorConvertido }>
+                { valorMoeda } { moedaSelecionada }
+              </Text>
+              <Text style={ [ styles.valorConvertido, { fontSize: 18, margin: 10, fontWeight: 'normal' } ] }>
+                Corresponde a
+              </Text>
+              <Text style={ styles.valorConvertido }>
+                { valorConvertido }
+              </Text>
+            </View>
+          ) }
         </View>
       </TouchableWithoutFeedback>
     )
